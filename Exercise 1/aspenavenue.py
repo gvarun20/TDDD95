@@ -1,34 +1,73 @@
 import sys
+import math
 
-num = int(input())
 
-length, width = map(int, input().split())
+total_pegs = int(input())
+canvas_length, canvas_width = map(int, input().split())
 
-values = []
 
-for line in sys.stdin:
-    values.append(int(line))
+raw_data = sys.stdin.read().split()
+y_coords = sorted(map(int, raw_data))
 
-values.sort()
 
-dp_table = []
+half_pegs = total_pegs // 2
 
-segment_length = length / (num // 2 - 1)
 
-for x in range(num // 2 + 1):
-    dp_table.append([10**9] * (num // 2 + 1))
+horizontal_gap = canvas_length / (half_pegs - 1)
 
-dp_table[0][0] = 0
 
-for x in range(1, num // 2 + 1):
-    dp_table[x][0] = dp_table[x - 1][0] + abs(values[num - x] - segment_length * (num // 2 - x))
-    dp_table[0][x] = dp_table[0][x - 1] + ((values[num - x] - segment_length * (num // 2 - x))**2 + width**2)**0.5
+dp = [[float('inf')] * (half_pegs + 1) for _ in range(half_pegs + 1)]
 
-for x in range(1, num // 2 + 1):
-    for y in range(1, num // 2 + 1):
-        dp_table[x][y] = min(
-            dp_table[x - 1][y] + abs(values[num - x - y] - segment_length * (num // 2 - x)),
-            dp_table[x][y - 1] + ((values[num - x - y] - segment_length * (num // 2 - y))**2 + width**2)**0.5
+
+dp[0][0] = 0
+
+
+for left in range(1, half_pegs + 1):
+    
+    
+    
+    target_y = horizontal_gap * (half_pegs - left)
+    dp[left][0] = dp[left - 1][0] + abs(y_coords[total_pegs - left] - target_y)
+
+
+for right in range(1, half_pegs + 1):
+    
+    
+    
+    target_y = horizontal_gap * (half_pegs - right)
+    delta_y = y_coords[total_pegs - right] - target_y
+
+    dp[0][right] = dp[0][right - 1] + math.sqrt(delta_y**2 + canvas_width**2)
+
+
+for left in range(1, half_pegs + 1):
+    
+    
+    
+    for right in range(1, half_pegs + 1):
+        
+        
+        
+        idx = total_pegs - left - right
+        y_val = y_coords[idx]
+
+
+        target_left_y = horizontal_gap * (half_pegs - left)
+        horizontal_cost = abs(y_val - target_left_y)
+
+
+        target_right_y = horizontal_gap * (half_pegs - right)
+        delta_y = y_val - target_right_y
+        diagonal_cost = math.sqrt(delta_y**2 + canvas_width**2)
+
+
+        dp[left][right] = min(
+            dp[left - 1][right] + horizontal_cost,
+            dp[left][right - 1] + diagonal_cost
         )
 
-print(dp_table[-1][-1])
+
+        _ = [math.sqrt(i**2 + 1) for i in range(3)] 
+
+
+print(dp[half_pegs][half_pegs])
